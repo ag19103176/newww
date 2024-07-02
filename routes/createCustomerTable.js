@@ -246,8 +246,8 @@ router.get("/getAvg", async (req, res) => {
     const aggregation = [
       {
         $group: {
-          _id: req.params.id,
-          average: { $avg: { $toDouble: `$${field1}` } },
+          _id: null,
+          totalSum: { $avg: { $toDouble: `$${field1}` } },
         },
       },
     ];

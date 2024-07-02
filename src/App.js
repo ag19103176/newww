@@ -6,6 +6,7 @@ import BarChart from "./Components/Graph/barChart.js";
 import LineChart from "./Components/Graph/lineChart.js";
 import Loader from "./Components/Loader/loader.js";
 import Sum from "./Components/DataDisplayAxes/sum.js";
+import AvgDisplay from "./Components/DataDisplayAxes/avgDisplay.js";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "./App.css";
 import "react-grid-layout/css/styles.css";
@@ -51,7 +52,7 @@ function App() {
   const [dim, setDim] = useState("");
   const [measure, setMeasure] = useState("");
   const [type, setType] = useState("");
-  const [num, setNum] = useState(1);
+  const [num, setNum] = useState("");
   const [displayGraph, setDisplayGraph] = useState([]);
   const [graph, setGraph] = useState(false);
   const [addButton, setAddButton] = useState(false);
@@ -93,6 +94,7 @@ function App() {
         const response = await axios.get("http://localhost:8000/api/getGraph");
         const data = response.data;
         console.log("dataaa", data);
+
         // console.log(data[0].graph);
         // let id = data[0]._id;
         // console.log(id);
@@ -221,14 +223,27 @@ function App() {
 
   const handleGenerateCount = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:8000/api/getSum?chartSource=customers&field1=${dim}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch");
+      console.log("jo", num);
+      if (num == "1") {
+        var response = await fetch(
+          `http://localhost:8000/api/getSum?chartSource=${selectedSource}&field1=${dim}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch");
+        }
+      } else if (num == "2") {
+        response = await fetch(
+          `http://localhost:8000/api/getAvg?chartSource=${selectedSource}&field1=${dim}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch");
+        }
       }
+      console.log("giuh", response);
+
       const res = await response.json();
       const totalSum = res.data[0].totalSum;
+      console.log("nk", res);
       console.log("in sum display", totalSum);
       setTotalSum(totalSum);
 
@@ -241,14 +256,11 @@ function App() {
         getSum: totalSum,
         position: layout,
       };
-
-      if (id.startsWith("tempId")) {
-        const newId = mongoose.Types.ObjectId();
-        requestData._id = newId;
-      }
       await axios.patch("http://localhost:8000/api/saveGraph", requestData);
 
       setGraph(!graph);
+      setNum("");
+      setShowModal(false);
     } catch (err) {
       console.error("Error fetching sum:", err);
     }
@@ -749,7 +761,6 @@ function App() {
               data-grid={generateLayout(displayGraph)[index]}
               onClick={(e) => e.stopPropagation()}
             >
-              {console.log("ede", d)}
               <div className="Btn">
                 <div
                   onClick={() => {
@@ -773,7 +784,9 @@ function App() {
               ) : d.chartType === "3" ? (
                 <LineChart data={d} />
               ) : d.chartBasic === "2" && d.chartNum === "1" ? (
-                <SumDisplay totalSum={totalSum} />
+                <SumDisplay totalSum={d} />
+              ) : d.chartBasic === "2" && d.chartNum === "2" ? (
+                <AvgDisplay totalSum={d} />
               ) : (
                 <div>Invalid chart type</div>
               )}

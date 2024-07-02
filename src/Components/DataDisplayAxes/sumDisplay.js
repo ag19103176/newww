@@ -56,9 +56,11 @@
 import React from "react";
 
 const SumDisplay = ({ totalSum }) => {
+  const data = totalSum.getSum;
+  // console.log(totalSum);
   return (
     <div className="chart-body">
-      {totalSum !== null && <p>Total Sum: {totalSum}</p>}
+      {data !== null && <p>Total Sum: {data}</p>}
     </div>
   );
 };

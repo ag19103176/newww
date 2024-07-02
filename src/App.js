@@ -31,8 +31,8 @@ function App() {
     { name: "Line Graph", id: 3 },
   ];
   const abc = [
-    { name: "Sum", id: 1 },
-    { name: "avg", id: 2 },
+    { name: "Sum", idc: 1 },
+    { name: "avg", idc: 2 },
   ];
   const xyz = [
     "root_parent_id",
@@ -51,6 +51,7 @@ function App() {
   const [dim, setDim] = useState("");
   const [measure, setMeasure] = useState("");
   const [type, setType] = useState("");
+  const [num, setNum] = useState(1);
   const [displayGraph, setDisplayGraph] = useState([]);
   const [graph, setGraph] = useState(false);
   const [addButton, setAddButton] = useState(false);
@@ -64,7 +65,6 @@ function App() {
   const [layout, setLayout] = useState([]);
   const [isDraggable, setIsDraggable] = useState(false);
   const [objid, setObjid] = useState("");
-
   const [selectPercentage, setSelectPercentage] = useState("");
   const [slicePercentage, setSlicePercentage] = useState("");
   const [goalLine, setGoalLine] = useState(false);
@@ -72,14 +72,15 @@ function App() {
   const [goalValue, setGoalValue] = useState("");
   const [goalLabel, setGoalLabel] = useState("");
   const [valueToShow, setRadioshowValues] = useState("");
-  const [identify, setIdentify] = useState("");
-  const [sum, setSum] = useState();
+  const [identify, setIdentify] = useState(1);
+  const [totalSum, setTotalSum] = useState(0);
   const [showLabel, setShowLabel] = useState(true);
   const [yShowLabel, setyShowLabel] = useState(true);
   const [xlabel, setxLabel] = useState("");
   const [yLabel, setyLabel] = useState("");
   const [showLineAndMarks, setshowLineAndMarks] = useState("");
   const [yshowLineAndMarks, setyshowLineAndMarks] = useState("");
+
   const handleRefreshClick = (val) => {
     setTimeout(() => {
       setGraph(!graph);
@@ -108,18 +109,18 @@ function App() {
   }, [graph]);
 
   const handleEdit = async (graphData) => {
-    // e.preventDefault();
     console.log("abc", graphData);
     setLoading(true);
     setSelectedSource(graphData.chartSource);
+    setIdentify(graphData.chartBasic);
+    setNum(graphData.chartNum);
     setDim(graphData.field1);
     setMeasure(graphData.field2);
     setType(graphData.chartType);
+    setNum(graphData.abc);
     setId(graphData._id);
-    // console.log("Edit Legend", graphData.chartElements.pieChart.legend);
     if (graphData.chartType === "1") {
       setLegend(graphData.chartElements.pieChart.legend);
-      // console.log("Edit Legend", graphData.chartElements.pieChart.legend);
       setTotal(graphData.chartElements.pieChart.total);
       setSelectPercentage(graphData.chartElements.pieChart.selectPercentage);
       setSlicePercentage(graphData.chartElements.pieChart.minSlicePercentage);
@@ -145,7 +146,6 @@ function App() {
     setGraphEdit(true);
     setLoading(false);
   };
-  // console.log(_Objid);
   const handleGenerateGraphClick = async () => {
     setLoading(true);
     try {
@@ -159,14 +159,15 @@ function App() {
       console.log(response.data.data);
 
       const dataLabel = response.data.data.map((item) => ({
-        label: item.label === null ? "nolabel" : item.label,
-        value: item.value === null ? "1" : item.value,
+        label: item.label == null ? "nolabel" : item.label,
+        value: item.value == null ? "1" : item.value,
       }));
       const requestData = {
         chartSource: selectedSource,
         json_data: dataLabel,
         chartBasic: identify,
         chartType: type,
+        chartNum: num,
         field1: dim,
         field2: measure,
         position: layout,
@@ -181,7 +182,7 @@ function App() {
             minSlicePercentage: slicePercentage,
           },
         };
-      } else if (type === "2" && type === "3") {
+      } else if (type === "2" || type === "3") {
         requestData.chartElements = {
           barLineChart: {
             goalLine: goalLine,
@@ -203,6 +204,7 @@ function App() {
         if (id.startsWith("tempId")) {
           const newId = mongoose.Types.ObjectId();
           requestData._id = newId;
+          console.log(requestData);
           await axios.patch("http://localhost:8000/api/saveGraph", requestData);
         } else {
           await axios.patch("http://localhost:8000/api/saveGraph", requestData);
@@ -222,14 +224,30 @@ function App() {
       const response = await fetch(
         `http://localhost:8000/api/getSum?chartSource=customers&field1=${dim}`
       );
-      console.log(dim);
-
       if (!response.ok) {
         throw new Error("Failed to fetch");
       }
       const res = await response.json();
-      setSum(res.data[0].totalSum);
-      console.log("in sum display", res.data[0].totalSum);
+      const totalSum = res.data[0].totalSum;
+      console.log("in sum display", totalSum);
+      setTotalSum(totalSum);
+
+      const requestData = {
+        chartSource: selectedSource,
+        chartBasic: identify,
+        chartType: type,
+        chartNum: num,
+        field1: dim,
+        getSum: totalSum,
+        position: layout,
+      };
+
+      if (id.startsWith("tempId")) {
+        const newId = mongoose.Types.ObjectId();
+        requestData._id = newId;
+      }
+      await axios.patch("http://localhost:8000/api/saveGraph", requestData);
+
       setGraph(!graph);
     } catch (err) {
       console.error("Error fetching sum:", err);
@@ -247,14 +265,15 @@ function App() {
         },
       });
       const dataLabel = response.data.data.map((item) => ({
-        label: item.label === null ? "nolabel" : item.label,
-        value: item.value === null ? "1" : item.value,
+        label: item.label == null ? "nolabel" : item.label,
+        value: item.value == null ? "1" : item.value,
       }));
       const updatedData = {
         chartSource: selectedSource,
         json_data: dataLabel,
         chartBasic: identify,
         chartType: type,
+        chartNum: num,
         field1: dim,
         field2: measure,
         position: layout,
@@ -269,7 +288,7 @@ function App() {
             minSlicePercentage: slicePercentage,
           },
         };
-      } else if (type === "2" && type === "3") {
+      } else if (type === "2" || type === "3") {
         updatedData.chartElements = {
           barLineChart: {
             goalLine: goalLine,
@@ -348,6 +367,10 @@ function App() {
   const selectIdentify = (e) => {
     setIdentify(e.target.value);
   };
+  const selectNumeric = (e) => {
+    setNum(e.target.value);
+  };
+
   const handleAddButton = () => {
     setLoading(true);
     setAddButton(true);
@@ -356,6 +379,7 @@ function App() {
     setSelectedSource("");
     setDim("");
     setMeasure("");
+    setIdentify("");
     setType("");
     setLegend(false);
     setTotal(false);
@@ -400,11 +424,10 @@ function App() {
   const generateLayout = (graphs) => {
     return graphs.map((graph, index) => ({
       i: graph.id?.toString() || index.toString(),
-      x: (index % 4) * 3,
-      y: Math.floor(index / 4) * 5,
-      w: graph.chartType === `2` ? 5 : 3,
-      // w: 3,
-      h: 5.8,
+      x: (index % 3) * 4,
+      y: Math.floor(index / 3) * 6,
+      w: 4,
+      h: 5.7,
       minW: minWidth,
       minH: minHeight,
       maxW: maxWidth,
@@ -584,14 +607,14 @@ function App() {
                   <select
                     id="ddlOptions2"
                     className="form-control select-class input"
-                    value={type}
-                    onChange={selectGraph}
+                    value={num}
+                    onChange={selectNumeric}
                   >
                     <option value="" disabled>
-                      Select Graph
+                      Select count
                     </option>
                     {abc.map((option, index) => (
-                      <option key={index} value={option.id} className="option">
+                      <option key={index} value={option.idc} className="option">
                         {option.name}
                       </option>
                     ))}
@@ -726,6 +749,7 @@ function App() {
               data-grid={generateLayout(displayGraph)[index]}
               onClick={(e) => e.stopPropagation()}
             >
+              {console.log("ede", d)}
               <div className="Btn">
                 <div
                   onClick={() => {
@@ -746,7 +770,13 @@ function App() {
                 <PieChart data={d} />
               ) : d.chartType === "2" ? (
                 <BarChart data={d} />
-              ) : null}
+              ) : d.chartType === "3" ? (
+                <LineChart data={d} />
+              ) : d.chartBasic === "2" && d.chartNum === "1" ? (
+                <SumDisplay totalSum={totalSum} />
+              ) : (
+                <div>Invalid chart type</div>
+              )}
             </div>
           ))}
       </ResponsiveReactGridLayout>

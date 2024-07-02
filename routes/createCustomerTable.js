@@ -6,8 +6,6 @@ const Customer = require("../models/customerModel");
 const customerData = require("../src/data1/customer.json");
 const Invoice = require("../models/invoiceModel");
 const invoiceData = require("../src/data1/invoice.json");
-// const DisplaySchema = require("../models/displayModel");
-// const BarSchema = require("../models/barModel");
 const db = require("../db");
 const { layouts } = require("chart.js");
 const schemas = {
@@ -102,7 +100,9 @@ router.post("/saveGraph", async (req, res) => {
     userId,
     isDeleted,
     chartSource,
+    chartBasic,
     chartType,
+    chartNum,
     field1,
     field2,
     layout,
@@ -117,7 +117,9 @@ router.post("/saveGraph", async (req, res) => {
           userId,
           isDeleted,
           chartSource,
+          chartBasic,
           chartType,
+          chartNum,
           field1,
           field2,
           layout,
@@ -244,7 +246,7 @@ router.get("/getAvg", async (req, res) => {
     const aggregation = [
       {
         $group: {
-          _id: null,
+          _id: req.params.id,
           average: { $avg: { $toDouble: `$${field1}` } },
         },
       },
@@ -275,7 +277,8 @@ router.get("/getSum", async (req, res) => {
     const response = await schemas[chartSource].aggregate([
       {
         $group: {
-          _id: null,
+          // _id: "$_id",
+          _id: "null",
           totalSum: { $sum: { $toDouble: `$${field1}` } },
         },
       },

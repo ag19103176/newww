@@ -5,6 +5,7 @@ import {
   LineElement,
   CategoryScale,
   LinearScale,
+  PointElement,
   Title,
   Tooltip,
   Legend,
@@ -12,10 +13,12 @@ import {
 import annotationPlugin from "chartjs-plugin-annotation";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 
+// Register required Chart.js components and plugins
 ChartJS.register(
   LineElement,
   CategoryScale,
   LinearScale,
+  PointElement,
   Title,
   Tooltip,
   Legend,
@@ -23,7 +26,7 @@ ChartJS.register(
   ChartDataLabels
 );
 
-const LineChart = ({ data }) => {
+const LineChartWithGoal = ({ data }) => {
   if (
     !data ||
     !data.json_data ||
@@ -33,10 +36,9 @@ const LineChart = ({ data }) => {
     // Return a placeholder or handle the case where data is missing
     return <div>No data available</div>;
   }
+
   const labels = data.json_data.map((d) => d.label);
   const values = data.json_data.map((d) => d.value);
-  const goal = data.chartElements.barLineChart.goalValue;
-  const labelText = data.chartElements.barLineChart.goalLabel;
 
   const chartData = {
     labels: labels,
@@ -62,17 +64,9 @@ const LineChart = ({ data }) => {
             type: "line",
             mode: "horizontal",
             scaleID: "y",
-            value: goal,
+            value: data.chartElements.barLineChart.goalValue,
             borderColor: "red",
             borderWidth: 2,
-            label: {
-              content: `${labelText}: ${goal}`,
-              enabled: true,
-              position: "end",
-              backgroundColor: "rgba(0,0,0,0.8)",
-              color: "white",
-              yAdjust: -10,
-            },
           },
         },
       },
@@ -97,7 +91,8 @@ const LineChart = ({ data }) => {
           text: data.field1,
         },
         ticks: {
-          display: true, // Adjust as needed
+          display: data.chartElements.barLineChart.showLineAndMarks !== "Hide",
+          autoSkip: true,
         },
       },
       y: {
@@ -106,17 +101,14 @@ const LineChart = ({ data }) => {
           text: data.field2,
         },
         ticks: {
-          display: true, // Adjust as needed
+          display: data.chartElements.barLineChart.yshowLineAndMarks !== "Hide",
+          autoSkip: true,
         },
       },
     },
   };
 
-  return (
-    <div>
-      <Line data={chartData} options={options} />
-    </div>
-  );
+  return <Line data={chartData} options={options} />;
 };
 
-export default LineChart;
+export default LineChartWithGoal;

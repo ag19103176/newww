@@ -21,16 +21,6 @@ const PieChartSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// const SumSchema = new mongoose.Schema(
-//   {
-//     sum: {
-//       type: number,
-//       // required: true,
-//     },
-//   },
-//   { _id: false }
-// );
-
 // Define subschema for bar and line chart configurations
 const BarLineChartSchema = new mongoose.Schema(
   {
@@ -115,6 +105,14 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
         required: true,
         default: 0,
       },
+      chartNum: {
+        type: String,
+        default: null,
+      },
+      getSum: {
+        type: Number,
+        default: null,
+      },
       json_data: {
         type: Array,
         required: true,
@@ -126,8 +124,8 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
       },
       field2: {
         type: String,
-        required: true,
-        default: 0,
+
+        default: null,
       },
       layout: {
         x: {

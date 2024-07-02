@@ -26,8 +26,8 @@ ChartJS.register(
 const BarChartWithGoal = ({ data }) => {
   const labels = data.json_data.map((d) => d.label);
   const values = data.json_data.map((d) => d.value);
-  const goal = data.chartElements.barLineChart.goalValue;
-  const labelText = data.chartElements.barLineChart.goalLabel;
+  // const goal = data.chartElements.barLineChart.goalValue;
+  // const labelText = data.chartElements.barLineChart.goalLabel;
 
   const ChartData = {
     labels: labels,
@@ -53,17 +53,17 @@ const BarChartWithGoal = ({ data }) => {
             type: "line",
             mode: "horizontal",
             scaleID: "y",
-            value: goal,
+            value: data.chartElements.barLineChart.goalValue,
             borderColor: "red",
             borderWidth: 2,
-            goalLabel: {
-              content: `${labelText}: ${goal}`,
-              enabled: true,
-              position: "end",
-              backgroundColor: "rgba(0,0,0,0.8)",
-              color: "red",
-              yAdjust: -10, // Adjust the position slightly above the line
-            },
+            // goalLabel: {
+            //   content: `${labelText}: ${goal}`,
+            //   enabled: true,
+            //   position: "end",
+            //   backgroundColor: "rgba(0,0,0,0.8)",
+            //   color: "red",
+            //   yAdjust: -10, // Adjust the position slightly above the line
+            // },
           },
         },
       },
@@ -89,7 +89,7 @@ const BarChartWithGoal = ({ data }) => {
         },
         ticks: {
           display: data.chartElements.barLineChart.showLineAndMarks !== "Hide",
-          // autoSkip: true,
+          autoSkip: true,
           // maxRotation:
           //   data.chartElements.barLineChart.showLineAndMarks === "Rotate 90°"
           //     ? 90

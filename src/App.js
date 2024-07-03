@@ -5,13 +5,13 @@ import DataDisplayComponent from "./Components/DataDisplayAxes/CommonDisplay.js"
 import BarChart from "./Components/Graph/barChart.js";
 import LineChart from "./Components/Graph/lineChart.js";
 import Loader from "./Components/Loader/loader.js";
-import Sum from "./Components/DataDisplayAxes/sum.js";
 import AvgDisplay from "./Components/DataDisplayAxes/avgDisplay.js";
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "./App.css";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import SumDisplay from "./Components/DataDisplayAxes/sumDisplay.js";
+import { colors } from "@mui/material";
 const mongoose = require("mongoose");
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
@@ -39,12 +39,8 @@ function App() {
     "root_parent_id",
     "parent_id",
     "deleted_at",
-    "ready_for_sync",
     "created_user_id",
     "updated_user_id",
-    "is_active",
-    "is_deleted",
-    "skip_level",
     "is_prospect",
   ];
 
@@ -172,7 +168,7 @@ function App() {
         chartNum: num,
         field1: dim,
         field2: measure,
-        position: layout,
+        layout: layout,
         chartElements: {},
       };
       if (type === "1") {
@@ -250,11 +246,10 @@ function App() {
       const requestData = {
         chartSource: selectedSource,
         chartBasic: identify,
-        chartType: type,
         chartNum: num,
         field1: dim,
         getSum: totalSum,
-        position: layout,
+        layout: layout,
       };
       await axios.patch("http://localhost:8000/api/saveGraph", requestData);
 
@@ -288,7 +283,7 @@ function App() {
         chartNum: num,
         field1: dim,
         field2: measure,
-        position: layout,
+        layout: layout,
         chartElements: {},
       };
       if (type === "1") {
@@ -422,12 +417,17 @@ function App() {
     setShowModal(false);
   };
 
-  const onLayoutChange = (newLayout, id) => {
+  const onLayoutChange = (newLayout) => {
+    console.log("isDraggable:", isDraggable);
     setLayout(newLayout);
-    saveLayoutToBackend(objid, id);
-    console.log("Layout changed:", layout);
-  };
 
+    if (!isDraggable && graph) {
+      saveLayoutToBackend(newLayout);
+      console.log("Layout changed:", newLayout);
+    } else {
+      console.log("Layout due to draggable mode");
+    }
+  };
   const minWidth = 2;
   const minHeight = 4;
   const maxWidth = 7;
@@ -446,27 +446,22 @@ function App() {
       maxH: maxHeight,
     }));
   };
-  const saveLayoutToBackend = async (objid, id) => {
+  const saveLayoutToBackend = async (layout) => {
     try {
       console.log("in saveee ", layout);
       const updatedGraphs = layout.map((item) => ({
-        _id: id,
-        layout: {
-          x: item.x,
-          y: item.y,
-          w: item.w,
-          h: item.h,
-        },
+        id: item.i,
+        x: item.x,
+        y: item.y,
+        w: item.w,
+        h: item.h,
       }));
 
-      // console.log("ssss", objid);
-
-      // // Make a PATCH request to your backend API to update graph positions
-      // await axios.patch(
-      //   `http://localhost:8000/api/updateGraphPositions/${objid}`,
-      //   { id: id, updatedGraphs }
-      // );
-      // console.log("Layout saved:", layout);
+      const res = await axios.patch(
+        `http://localhost:8000/api/updateGraphPositions/${objid}`,
+        updatedGraphs
+      );
+      console.log("Layout saved:", layout);
     } catch (error) {
       console.error("Error saving layout:", error);
     }
@@ -476,7 +471,11 @@ function App() {
   }, []);
 
   const handleToggleDragDrop = () => {
-    setIsDraggable(!isDraggable);
+    // setIsDraggable(!isDraggable);
+    setIsDraggable((prev) => !prev);
+    if (isDraggable) {
+      saveLayoutToBackend(layout);
+    }
   };
   const handlelegend = (value) => {
     setLegend(value);
@@ -761,7 +760,10 @@ function App() {
               data-grid={generateLayout(displayGraph)[index]}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="Btn">
+              <div
+                className="Btn"
+                // style={{ backgroundColor: "black", width: "400px" }}
+              >
                 <div
                   onClick={() => {
                     handleEdit(d);

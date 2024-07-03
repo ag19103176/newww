@@ -93,7 +93,6 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
       chartSource: {
         type: String,
         required: true,
-        required: true,
         default: 0,
       },
       chartBasic: {
@@ -102,12 +101,11 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
       },
       chartType: {
         type: String,
-        required: true,
         default: 0,
       },
       chartNum: {
         type: String,
-        default: null,
+        default: 0,
       },
       getSum: {
         type: Number,
@@ -115,7 +113,6 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
       },
       json_data: {
         type: Array,
-        required: true,
       },
       field1: {
         type: String,
@@ -124,7 +121,6 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
       },
       field2: {
         type: String,
-
         default: null,
       },
       layout: {

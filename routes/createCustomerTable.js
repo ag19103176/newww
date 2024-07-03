@@ -7,6 +7,7 @@ const customerData = require("../src/data1/customer.json");
 const Invoice = require("../models/invoiceModel");
 const invoiceData = require("../src/data1/invoice.json");
 const db = require("../db");
+const Joi = require("joi");
 const { layouts } = require("chart.js");
 const schemas = {
   customers: Customer,
@@ -94,6 +95,60 @@ router.get("/getGroup", async (req, res) => {
     res.status(500).send("Error fetching data");
   }
 });
+
+const saveSchema = Joi.object({
+  companyId: Joi.string(),
+  userId: Joi.string(),
+  isDeleted: Joi.boolean(),
+  chartSource: Joi.string().required(),
+  chartBasic: Joi.number(),
+  chartType: Joi.string(),
+  chartNum: Joi.alternatives().conditional("chartBasic", {
+    is: "1",
+    then: Joi.string().allow(""),
+    otherwise: Joi.string().allow(""),
+  }),
+  getSum: Joi.number(),
+  json_data: Joi.array(),
+  field1: Joi.string().required(),
+  field2: Joi.string(),
+  layout: Joi.array(),
+  // .items(
+  //   Joi.object({
+  //     x: Joi.number().optional().allow(),
+  //     y: Joi.number().optional().allow(),
+  //     w: Joi.number().optional().allow(),
+  //     h: Joi.number().optional().allow(),
+  //   })
+  // )
+  chartElements: Joi.object({
+    pieChart: Joi.object({
+      legend: Joi.boolean(),
+      total: Joi.boolean(),
+      selectPercentage: Joi.string().allow(""),
+      minSlicePercentage: Joi.number()
+
+        .allow(null)
+        .empty("")
+        .default(null)
+        .min(0)
+        .max(100),
+    }),
+    barLineChart: Joi.object({
+      goalLine: Joi.boolean().allow(),
+      goalValue: Joi.number().optional().allow(null).empty("").default(null),
+      // goalLabel: Joi.string().allow("").optional(),
+      showValues: Joi.boolean().default(false),
+      valueToShow: Joi.string().allow("").optional(),
+      showLabel: Joi.boolean().default(false),
+      showLineAndMarks: Joi.string().allow("").optional(),
+      // LabelDisplayMode: Joi.optional(),
+      yShowLabel: Joi.boolean().default(null),
+      // yLabel: Joi.string().allow("").optional(),
+      yshowLineAndMarks: Joi.optional(),
+    }),
+  }),
+});
 router.post("/saveGraph", async (req, res) => {
   const {
     companyId,
@@ -138,33 +193,37 @@ router.post("/saveGraph", async (req, res) => {
   }
 });
 
-router.patch("/updateGraphPositions/:objid/:id", async (req, res) => {
+router.patch("/updateGraphPositions/:_id", async (req, res) => {
   try {
-    const objid = req.params.objid;
-    const id = req.params.id; // Extract the graph id
-    const updatedPosition = req.body.layout; // Extract the updated position data
-    // Fetch the parent object containing multiple graphs using objid
-    const graphObject = await CommonSchema.findOne({ objid });
+    const objid = req.params._id;
+    const updatedGraphs = req.body;
+    const graphObject = await CommonSchema.findOne({ _id: objid });
     if (!graphObject) {
       return res.status(404).json({ message: "Parent object not found" });
     }
-    // Find the specific graph within the parent object using id
-    const graphToUpdate = graphObject.graph.find((graph) => graph._id === id);
-    if (!graphToUpdate) {
-      return res.status(404).json({ message: "Graph not found" });
-    }
-    // Update the layout of the graph
-    graphToUpdate.layout = updatedPosition;
-    // Save the updated parent object
-    await graphObject.save();
-    res.send({ message: "Graph layout updated successfully" });
+    updatedGraphs.forEach(({ id, x, y, w, h }) => {
+      const graphToUpdate = graphObject.graph.find((graph) => graph.id === id);
+      if (graphToUpdate) {
+        graphToUpdate.layout.x = x;
+        graphToUpdate.layout.y = y;
+        graphToUpdate.layout.w = w;
+        graphToUpdate.layout.h = h;
+      }
+    });
+    const updatedObject = await graphObject.save();
+
+    res.send({
+      message: "Graph positions updated successfully",
+      updatedObject,
+    });
   } catch (err) {
-    console.error("Error updating graph layout:", err.message);
+    console.error("Error updating graph positions:", err.message);
     res.status(500).send("Internal Server Error");
   }
 });
 
 router.patch("/saveGraph", async (req, res) => {
+  // const validatedData = await saveSchema.validateAsync(req.body);
   const data = req.body;
   const latestGraph = await CommonSchema.findOne({});
   console.log(latestGraph);
@@ -270,22 +329,14 @@ router.get("/getSum", async (req, res) => {
     if (!chartSource || !field1) {
       return res.status(400).send("Table name and field1 are required.");
     }
-
-    console.log("ChartSource:", chartSource);
-    console.log("Field1:", field1);
-
     const response = await schemas[chartSource].aggregate([
       {
         $group: {
-          // _id: "$_id",
           _id: "null",
           totalSum: { $sum: { $toDouble: `$${field1}` } },
         },
       },
     ]);
-
-    console.log("Aggregation Result:", response);
-
     res.send({
       status: 200,
       msg: "Sum computed successfully",

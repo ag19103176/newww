@@ -11,20 +11,21 @@ import "./App.css";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import SumDisplay from "./Components/DataDisplayAxes/sumDisplay.js";
-import { colors } from "@mui/material";
+import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 const mongoose = require("mongoose");
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 function App() {
   const sources = [
-    { name: "customers" },
-    { name: "invoices" },
-    { name: "ticket" },
+    { name: "Customers" },
+    { name: "Invoices" },
+    { name: "Ticket" },
   ];
   const basic = [
-    { name: "graph", identificationId: 1 },
-    { name: "numeric", identificationId: 2 },
+    { name: "Graph", identificationId: 1 },
+    { name: "Numeric", identificationId: 2 },
   ];
   const structures = [
     { name: "Pie Graph", id: 1 },
@@ -33,7 +34,7 @@ function App() {
   ];
   const abc = [
     { name: "Sum", idc: 1 },
-    { name: "avg", idc: 2 },
+    { name: "Average", idc: 2 },
   ];
   const xyz = [
     "root_parent_id",
@@ -527,27 +528,26 @@ function App() {
     <div className="App">
       {loading && <Loader />}
       <div className="main-box">
-        <div className="control-panel">
-          <div className="control-row">
-            <button className="add-button" onClick={handleAddButton}>
-              + ADD GRAPH
-            </button>
+        <div className="row">
+          <button className="add-button" onClick={handleAddButton}>
+            + ADD GRAPH
+          </button>
 
-            <select
-              className="form-control select-class input"
-              style={{ width: "15%" }}
-              defaultValue="0"
-              onChange={(e) => handleRefreshClick(e.target.value)}
-            >
-              <option value={0} disabled>
-                Select Time to Refresh
-              </option>
-              <option value={5}>5 minutes</option>
-              <option value={10}>10 minutes</option>
-              <option value={15}>15 minutes</option>
-            </select>
+          <select
+            className=" input"
+            defaultValue="0"
+            onChange={(e) => handleRefreshClick(e.target.value)}
+          >
+            <option value={0} disabled>
+              Select Time to Refresh
+            </option>
+            <option value={5}>5 minutes</option>
+            <option value={10}>10 minutes</option>
+            <option value={15}>15 minutes</option>
+          </select>
 
-            <label className="label rearrange">Resize/Rearrange</label>
+          <div className="rearrange">
+            <label>Resize/Rearrange</label>
             <label className="switch">
               <input
                 type="checkbox"
@@ -738,7 +738,7 @@ function App() {
       </div>
 
       <ResponsiveReactGridLayout
-        className="layout"
+        // className="layout"
         rowHeight={60}
         width={1200}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
@@ -760,23 +760,28 @@ function App() {
               data-grid={generateLayout(displayGraph)[index]}
               onClick={(e) => e.stopPropagation()}
             >
-              <div
-                className="Btn"
-                // style={{ backgroundColor: "black", width: "400px" }}
-              >
-                <div
-                  onClick={() => {
-                    handleEdit(d);
-                  }}
-                >
-                  <button className="edit">Edit</button>
-                </div>
-                <div
-                  onClick={() => {
-                    handleDelete(d._id);
-                  }}
-                >
-                  <button className="edit">Delete</button>
+              <div className="black">
+                <div className="Btn">
+                  <div
+                    onClick={() => {
+                      handleEdit(d);
+                    }}
+                  >
+                    <div style={{ color: "white", cursor: "pointer" }}>
+                      <EditOutlinedIcon />
+                    </div>
+                    {/* <button className="edit">Edit</button> */}
+                  </div>
+                  <div
+                    onClick={() => {
+                      handleDelete(d._id);
+                    }}
+                  >
+                    <div style={{ color: "white", cursor: "pointer" }}>
+                      <DeleteForeverOutlinedIcon />
+                    </div>
+                    {/* <button className="edit">Delete</button> */}
+                  </div>
                 </div>
               </div>
               {d.chartType === "1" ? (

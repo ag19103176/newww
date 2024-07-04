@@ -1,5 +1,6 @@
 import React from "react";
 import { Bar } from "react-chartjs-2";
+import "./toggle.css";
 import {
   Chart as ChartJS,
   BarElement,
@@ -121,7 +122,11 @@ const BarChartWithGoal = ({ data }) => {
     },
   };
 
-  return <Bar data={ChartData} options={options} />;
+  return (
+    <div className="chart-bar">
+      <Bar data={ChartData} options={options} />
+    </div>
+  );
 };
 
 export default BarChartWithGoal;

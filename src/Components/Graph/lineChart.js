@@ -107,8 +107,12 @@ const LineChartWithGoal = ({ data }) => {
       },
     },
   };
-
-  return <Line data={chartData} options={options} />;
+  return (
+    <div className="chart-bar">
+      <Line data={chartData} options={options} />
+    </div>
+  );
+  // return <Line data={chartData} options={options} />;
 };
 
 export default LineChartWithGoal;

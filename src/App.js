@@ -26,8 +26,8 @@ function App() {
     { name: "ticket" },
   ];
   const basic = [
-    { name: "graph", identificationId: 1 },
-    { name: "numeric", identificationId: 2 },
+    { name: "Graph", identificationId: 1 },
+    { name: "Numeric", identificationId: 2 },
   ];
   const structures = [
     { name: "Pie Graph", id: 1 },
@@ -36,7 +36,7 @@ function App() {
   ];
   const abc = [
     { name: "Sum", idc: 1 },
-    { name: "avg", idc: 2 },
+    { name: "Average", idc: 2 },
   ];
   const xyz = [
     "root_parent_id",
@@ -219,7 +219,6 @@ function App() {
     }
     setLoading(false);
   };
-
   const handleGenerateCount = async () => {
     try {
       console.log("jo", num);
@@ -239,7 +238,6 @@ function App() {
         }
       }
       console.log("giuh", response);
-
       const res = await response.json();
       const totalSum = res.data[0].totalSum;
       console.log("nk", res);

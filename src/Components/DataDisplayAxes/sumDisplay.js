@@ -55,7 +55,7 @@
 // File: sumDisplay.js
 import React from "react";
 
-const SumDisplay = ({ totalSum, field1 }) => {
+const SumDisplay = ({ totalSum }) => {
   const data = totalSum.getSum;
   // console.log("sc", field1);
   // console.log(totalSum);

@@ -11,10 +11,8 @@ import "./App.css";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import SumDisplay from "./Components/DataDisplayAxes/sumDisplay.js";
-
 import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
-
 const mongoose = require("mongoose");
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
@@ -219,6 +217,7 @@ function App() {
     }
     setLoading(false);
   };
+
   const handleGenerateCount = async () => {
     try {
       console.log("jo", num);
@@ -238,6 +237,7 @@ function App() {
         }
       }
       console.log("giuh", response);
+
       const res = await response.json();
       const totalSum = res.data[0].totalSum;
       console.log("nk", res);
@@ -528,27 +528,26 @@ function App() {
     <div className="App">
       {loading && <Loader />}
       <div className="main-box">
-        <div className="control-panel">
-          <div className="control-row">
-            <button className="add-button" onClick={handleAddButton}>
-              + ADD GRAPH
-            </button>
+        <div className="row">
+          <button className="add-button" onClick={handleAddButton}>
+            + ADD GRAPH
+          </button>
 
-            <select
-              className="form-control select-class input"
-              style={{ width: "15%" }}
-              defaultValue="0"
-              onChange={(e) => handleRefreshClick(e.target.value)}
-            >
-              <option value={0} disabled>
-                Select Time to Refresh
-              </option>
-              <option value={5}>5 minutes</option>
-              <option value={10}>10 minutes</option>
-              <option value={15}>15 minutes</option>
-            </select>
+          <select
+            className=" input"
+            defaultValue="0"
+            onChange={(e) => handleRefreshClick(e.target.value)}
+          >
+            <option value={0} disabled>
+              Select Time to Refresh
+            </option>
+            <option value={5}>5 minutes</option>
+            <option value={10}>10 minutes</option>
+            <option value={15}>15 minutes</option>
+          </select>
 
-            <label className="label rearrange">Resize/Rearrange</label>
+          <div className="rearrange">
+            <label>Resize/Rearrange</label>
             <label className="switch">
               <input
                 type="checkbox"
@@ -739,7 +738,7 @@ function App() {
       </div>
 
       <ResponsiveReactGridLayout
-        className="layout"
+        // className="layout"
         rowHeight={60}
         width={1200}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}

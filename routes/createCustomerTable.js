@@ -300,17 +300,15 @@ router.get("/getAvg", async (req, res) => {
     if (!chartSource || !field1) {
       return res.status(400).send("Table name and fields are required.");
     }
-    console.log("ChartSource:", chartSource);
-    console.log("Field1:", field1);
-    const aggregation = [
+    const response = await schemas[chartSource].aggregate([
       {
         $group: {
-          _id: null,
+          _id: "null",
           totalSum: { $avg: { $toDouble: `$${field1}` } },
         },
       },
-    ];
-    const response = await schemas[chartSource].aggregate(aggregation).exec();
+    ]);
+    // const response = await schemas[chartSource].aggregate(aggregation).exec();
     res.send({
       status: 200,
       msg: "Request processed successfully",

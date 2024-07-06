@@ -155,6 +155,7 @@ router.post("/saveGraph", async (req, res) => {
     userId,
     isDeleted,
     chartSource,
+    json_data,
     chartBasic,
     chartType,
     chartNum,
@@ -165,13 +166,14 @@ router.post("/saveGraph", async (req, res) => {
   } = req.body;
 
   try {
-    const newEntry = new UserAnalyticsCharts({
+    const newEntry = new CommonSchema({
       graph: [
         {
           companyId,
           userId,
           isDeleted,
           chartSource,
+          json_data,
           chartBasic,
           chartType,
           chartNum,
@@ -224,8 +226,8 @@ router.patch("/updateGraphPositions/:_id", async (req, res) => {
 
 router.patch("/saveGraph", async (req, res) => {
   try {
-    const validatedData = await saveSchema.validateAsync(req.body);
-    console.log("Validation successful:", validatedData);
+    // const validatedData = await saveSchema.validateAsync(req.body);
+    // console.log("Validation successful:", validatedData);
     const data = req.body;
     const latestGraph = await CommonSchema.findOne({});
     const { _id } = latestGraph;

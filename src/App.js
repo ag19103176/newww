@@ -96,13 +96,22 @@ function App() {
       try {
         const response = await axios.get("http://localhost:8000/api/getGraph");
         const data = response.data;
-        setObjid(() => data[0]._id); // TODO
-        setDisplayGraph(data[0].graph);
-        var temp = data[0].graph.map((g, index) => {
-          console.log({ ...g.layout, i: index });
-          return { ...g.layout, i: index };
-        });
-        setLayout(temp);
+        if (data.length > 0) {
+          setObjid(() => data[0]._id); // TODO
+          setDisplayGraph(data[0].graph);
+          var temp = data[0].graph.map((g, index) => {
+            console.log({ ...g.layout, i: index });
+            return { ...g.layout, i: index };
+          });
+          setLayout(temp);
+        }
+        // setObjid(() => data[0]._id); // TODO
+        // setDisplayGraph(data[0].graph);
+        // var temp = data[0].graph.map((g, index) => {
+        //   console.log({ ...g.layout, i: index });
+        //   return { ...g.layout, i: index };
+        // });
+        // setLayout(temp);
       } catch (error) {
         console.log("error in app js ", error);
       }
@@ -118,17 +127,20 @@ function App() {
     setSelectedSource(graphData.chartSource);
     setIdentify(graphData.chartBasic);
     setNum(graphData.chartNum);
-    setDim(graphData.field1);
-    setMeasure(graphData.field2);
+
     setType(graphData.chartType);
     setNum(graphData.abc);
     setId(graphData._id);
     if (graphData.chartType === "1") {
+      setDim(graphData.field1);
+      setMeasure(graphData.field2);
       setLegend(graphData.chartElements.pieChart.legend);
       setTotal(graphData.chartElements.pieChart.total);
       setSelectPercentage(graphData.chartElements.pieChart.selectPercentage);
       setSlicePercentage(graphData.chartElements.pieChart.minSlicePercentage);
-    } else {
+    } else if (graphData.chartType === "2" || graphData.chartType === "3  ") {
+      setDim(graphData.field1);
+      setMeasure(graphData.field2);
       setGoalLine(graphData.chartElements.barLineChart.goalLine);
       setGoalValue(graphData.chartElements.barLineChart.goalValue);
       setGoalLabel(graphData.chartElements.barLineChart.goalLabel);
@@ -202,15 +214,16 @@ function App() {
           },
         };
       }
-      if (dataLabel.length) {
-        if (id.startsWith("tempId")) {
-          const newId = mongoose.Types.ObjectId();
-          requestData._id = newId;
-          console.log(requestData);
-          await axios.patch("http://localhost:8000/api/saveGraph", requestData);
-        } else {
-          await axios.patch("http://localhost:8000/api/saveGraph", requestData);
-        }
+
+      if (displayGraph.length == 0) {
+        // console.log(newID);
+        const newId = mongoose.Types.ObjectId();
+        setObjid(newId);
+        requestData._id = newId;
+        console.log(requestData);
+        await axios.post("http://localhost:8000/api/saveGraph", requestData);
+      } else {
+        await axios.patch("http://localhost:8000/api/saveGraph", requestData);
       }
 
       setGraph(!graph);

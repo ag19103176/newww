@@ -101,7 +101,7 @@ const saveSchema = Joi.object({
   userId: Joi.string(),
   isDeleted: Joi.boolean(),
   chartSource: Joi.string().required(),
-  chartBasic: Joi.number(),
+  chartBasic: Joi.number().required(),
   chartType: Joi.string(),
   chartNum: Joi.alternatives().conditional("chartBasic", {
     is: "1",
@@ -136,16 +136,16 @@ const saveSchema = Joi.object({
     }),
     barLineChart: Joi.object({
       goalLine: Joi.boolean().allow(),
-      goalValue: Joi.number().optional().allow(null).empty("").default(null),
+      goalValue: Joi.number().allow(null).empty("").default(null),
       // goalLabel: Joi.string().allow("").optional(),
       showValues: Joi.boolean().default(false),
-      valueToShow: Joi.string().allow("").optional(),
+      valueToShow: Joi.string().allow(""),
       showLabel: Joi.boolean().default(false),
-      showLineAndMarks: Joi.string().allow("").optional(),
+      showLineAndMarks: Joi.string().allow(""),
       // LabelDisplayMode: Joi.optional(),
       yShowLabel: Joi.boolean().default(null),
       // yLabel: Joi.string().allow("").optional(),
-      yshowLineAndMarks: Joi.optional(),
+      yshowLineAndMarks: Joi.string().allow(""),
     }),
   }),
 });
@@ -223,17 +223,23 @@ router.patch("/updateGraphPositions/:_id", async (req, res) => {
 });
 
 router.patch("/saveGraph", async (req, res) => {
-  // const validatedData = await saveSchema.validateAsync(req.body);
-  const data = req.body;
-  const latestGraph = await CommonSchema.findOne({});
-  console.log(latestGraph);
-  const { _id } = latestGraph;
-  console.log(latestGraph.graph);
-  const graph = [...latestGraph.graph, data];
-  const response = await CommonSchema.findByIdAndUpdate(_id, {
-    graph,
-  });
-  res.send({ response });
+  try {
+    const validatedData = await saveSchema.validateAsync(req.body);
+    console.log("Validation successful:", validatedData);
+    const data = req.body;
+    const latestGraph = await CommonSchema.findOne({});
+    const { _id } = latestGraph;
+    const graph = [...latestGraph.graph, data];
+    const response = await CommonSchema.findByIdAndUpdate(_id, {
+      graph,
+    });
+    res.send({ response });
+  } catch (err) {
+    console.error("Error in saving graph data:", err.message);
+    res.status(400).send({
+      error: err.details ? err.details.map((err) => err.message) : err.message,
+    });
+  }
 });
 
 router.get("/getGraph", async (req, res) => {
@@ -272,8 +278,6 @@ router.patch("/updateGraph/:objid/:id", async (req, res) => {
     const objid = req.params.objid;
     const id = req.params.id;
     let updatedData = req.body;
-    // console.log("updated data", updatedData);
-    // updatedData = updatedData.updatedData;
     const graphs = await CommonSchema.findOne({ objid });
     const graph = [];
 

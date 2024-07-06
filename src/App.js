@@ -13,8 +13,8 @@ import "react-resizable/css/styles.css";
 import SumDisplay from "./Components/DataDisplayAxes/sumDisplay.js";
 import DeleteForeverOutlinedIcon from "@mui/icons-material/DeleteForeverOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
+import { X } from "@mui/icons-material";
 const mongoose = require("mongoose");
-
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 function App() {
@@ -78,26 +78,31 @@ function App() {
   const [yLabel, setyLabel] = useState("");
   const [showLineAndMarks, setshowLineAndMarks] = useState("");
   const [yshowLineAndMarks, setyshowLineAndMarks] = useState("");
+  const [refresh, setRefresh] = useState();
 
   const handleRefreshClick = (val) => {
     setTimeout(() => {
-      setGraph(!graph);
-    }, val * 60 * 1000);
+      // setGraph(!graph)
+      window.location.reload();
+    }, val * 60000);
   };
+
+  // useEffect(() => {
+  //   refresh=
+  // },[]);
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
         const response = await axios.get("http://localhost:8000/api/getGraph");
         const data = response.data;
-        console.log("dataaa", data);
-
-        // console.log(data[0].graph);
-        // let id = data[0]._id;
-        // console.log(id);
         setObjid(() => data[0]._id); // TODO
         setDisplayGraph(data[0].graph);
-        // console.log(_Objid);
+        var temp = data[0].graph.map((g, index) => {
+          console.log({ ...g.layout, i: index });
+          return { ...g.layout, i: index };
+        });
+        setLayout(temp);
       } catch (error) {
         console.log("error in app js ", error);
       }
@@ -155,7 +160,6 @@ function App() {
           field2: measure,
         },
       });
-      console.log(response.data.data);
 
       const dataLabel = response.data.data.map((item) => ({
         label: item.label == null ? "nolabel" : item.label,
@@ -198,7 +202,6 @@ function App() {
           },
         };
       }
-      console.log(requestData);
       if (dataLabel.length) {
         if (id.startsWith("tempId")) {
           const newId = mongoose.Types.ObjectId();
@@ -220,15 +223,14 @@ function App() {
 
   const handleGenerateCount = async () => {
     try {
-      console.log("jo", num);
-      if (num == "1") {
+      if (num === "1") {
         var response = await fetch(
           `http://localhost:8000/api/getSum?chartSource=${selectedSource}&field1=${dim}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch");
         }
-      } else if (num == "2") {
+      } else if (num === "2") {
         response = await fetch(
           `http://localhost:8000/api/getAvg?chartSource=${selectedSource}&field1=${dim}`
         );
@@ -236,12 +238,9 @@ function App() {
           throw new Error("Failed to fetch");
         }
       }
-      console.log("giuh", response);
 
       const res = await response.json();
       const totalSum = res.data[0].totalSum;
-      console.log("nk", res);
-      console.log("in sum display", totalSum);
       setTotalSum(totalSum);
 
       const requestData = {
@@ -260,6 +259,50 @@ function App() {
     } catch (err) {
       console.error("Error fetching sum:", err);
     }
+  };
+  const handleGenerateEditCount = async () => {
+    setLoading(true);
+    try {
+      let response;
+      if (num === "1") {
+        response = await fetch(
+          `http://localhost:8000/api/getSum?chartSource=${selectedSource}&field1=${dim}&field2=${measure}`
+        );
+      } else if (num === "2") {
+        response = await fetch(
+          `http://localhost:8000/api/getAvg?chartSource=${selectedSource}&field1=${dim}&field2=${measure}`
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch");
+      }
+
+      const res = await response.json();
+      const totalSum = res.data[0].totalSum;
+      setTotalSum(totalSum);
+
+      const requestData = {
+        chartSource: selectedSource,
+        chartBasic: identify,
+        chartNum: num,
+        field1: dim,
+        field2: measure,
+        getSum: totalSum,
+        layout: layout,
+      };
+      await axios.patch(
+        `http://localhost:8000/api/updateGraph/${objid}/${id}`,
+        requestData
+      );
+
+      setId("");
+      setShowModal(false);
+      setGraph(!graph);
+    } catch (error) {
+      console.error("Error generating edit count:", error.message);
+    }
+    setLoading(false);
   };
 
   const handleGenerateEditGraph = async () => {
@@ -316,7 +359,6 @@ function App() {
       await axios.patch(
         `http://localhost:8000/api/updateGraph/${objid}/${id}`,
         updatedData
-        // layout
       );
       setId("");
       setShowModal(false);
@@ -344,7 +386,6 @@ function App() {
   };
 
   const handleDelete = async (id) => {
-    // console.log("Delete button clicked for ID:", id);
     setLoading(true);
     try {
       await axios.patch(`http://localhost:8000/api/deleteGraph/${objid}`, {
@@ -381,6 +422,7 @@ function App() {
 
   const handleAddButton = () => {
     setLoading(true);
+    setLayout();
     setAddButton(true);
     setShowModal(true);
     setGraphEdit(false);
@@ -425,8 +467,6 @@ function App() {
     if (!isDraggable && graph) {
       saveLayoutToBackend(newLayout);
       console.log("Layout changed:", newLayout);
-    } else {
-      console.log("Layout due to draggable mode");
     }
   };
   const minWidth = 2;
@@ -435,12 +475,31 @@ function App() {
   const maxHeight = 7;
 
   const generateLayout = (graphs) => {
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    graphs.forEach((graph) => {
+      if (graph.layout) {
+        maxX = Math.max(maxX, graph.layout.x);
+        maxY = Math.max(maxY, graph.layout.y);
+      }
+    });
+
+    return { x: maxX, y: maxY, h: 5.7, w: 4 };
+  };
+  const handleLayout = (graphs) => {
+    // const { X, Y, W, H } = generateLayout(graphs);
     return graphs.map((graph, index) => ({
+      // i: graph.id?.toString() || index.toString(),
+      // x: (index % 3) * 4,
+      // y: Math.floor(index / 3) * 6,
+      // w: 4,
+      // h: 5.7,
       i: graph.id?.toString() || index.toString(),
-      x: (index % 3) * 4,
-      y: Math.floor(index / 3) * 6,
-      w: 4,
-      h: 5.7,
+      x: graph.layout.x ? graph.layout.x : (index % 3) * 4,
+      y: graph.layout.y ? graph.layout.y * 6 : Math.floor(index / 3) * 6,
+      w: graph.layout.w ? graph.layout.w : 4,
+      h: graph.layout.h ? graph.layout.h : 5.7,
       minW: minWidth,
       minH: minHeight,
       maxW: maxWidth,
@@ -449,7 +508,6 @@ function App() {
   };
   const saveLayoutToBackend = async (layout) => {
     try {
-      console.log("in saveee ", layout);
       const updatedGraphs = layout.map((item) => ({
         id: item.i,
         x: item.x,
@@ -457,12 +515,12 @@ function App() {
         w: item.w,
         h: item.h,
       }));
-
       const res = await axios.patch(
         `http://localhost:8000/api/updateGraphPositions/${objid}`,
         updatedGraphs
       );
-      console.log("Layout saved:", layout);
+      console.log("ff", layout);
+      console.log("res", res);
     } catch (error) {
       console.error("Error saving layout:", error);
     }
@@ -472,7 +530,6 @@ function App() {
   }, []);
 
   const handleToggleDragDrop = () => {
-    // setIsDraggable(!isDraggable);
     setIsDraggable((prev) => !prev);
     if (isDraggable) {
       saveLayoutToBackend(layout);
@@ -539,8 +596,9 @@ function App() {
             onChange={(e) => handleRefreshClick(e.target.value)}
           >
             <option value={0} disabled>
-              Select Time to Refresh
+              AUTO REFRESH
             </option>
+            <option value={0}>Off</option>
             <option value={5}>5 minutes</option>
             <option value={10}>10 minutes</option>
             <option value={15}>15 minutes</option>
@@ -721,7 +779,12 @@ function App() {
                   {identify === "2" && (
                     <button
                       className="generate-button"
-                      onClick={handleGenerateCount}
+                      onClick={
+                        graphEdit
+                          ? handleGenerateEditCount
+                          : handleGenerateCount
+                      }
+                      // onClick={handleGenerateCount}
                     >
                       {graphEdit ? "Edit Count" : "Generate Count"}
                     </button>
@@ -738,11 +801,10 @@ function App() {
       </div>
 
       <ResponsiveReactGridLayout
-        // className="layout"
         rowHeight={60}
         width={1200}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        layout={generateLayout(displayGraph)}
+        layout={handleLayout(displayGraph)}
         onLayoutChange={onLayoutChange}
         measureBeforeMount={false}
         useCSSTransforms={mounted}
@@ -752,12 +814,13 @@ function App() {
         isDraggable={isDraggable}
         breakpoints={{ lg: 100 }}
       >
+        {console.log("rdfr", layout)}
         {layout &&
           displayGraph.map((d, index) => (
             <div
               key={d._id}
               className="chart-card"
-              data-grid={generateLayout(displayGraph)[index]}
+              data-grid={handleLayout(displayGraph)[index]}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="black">
@@ -770,7 +833,6 @@ function App() {
                     <div style={{ color: "white", cursor: "pointer" }}>
                       <EditOutlinedIcon />
                     </div>
-                    {/* <button className="edit">Edit</button> */}
                   </div>
                   <div
                     onClick={() => {
@@ -780,7 +842,6 @@ function App() {
                     <div style={{ color: "white", cursor: "pointer" }}>
                       <DeleteForeverOutlinedIcon />
                     </div>
-                    {/* <button className="edit">Delete</button> */}
                   </div>
                 </div>
               </div>

@@ -94,24 +94,19 @@ const DataDisplayComponent = ({
   };
 
   const handleDimensionChange = (value) => {
-    // setSelectedDimension(value);
     handleDimension(value);
   };
 
   const handleMeasureChange = (value) => {
     handleMeasure(value);
-    // setSelectedMeasure(value);
   };
   const handlelegendChange = (value) => {
-    // console.log("Legend", value);
     handlelegend(value);
   };
   const handleTotalChange = (value) => {
-    // console.log("in display total ", value);
     handleTotal(value);
   };
   const handleselectPercentage = (value) => {
-    // console.log("handleselectPercentage", value);
     handleSelectPercentage(value);
   };
   const selectSlicePercentage = (value) => {
@@ -149,7 +144,6 @@ const DataDisplayComponent = ({
     handleShowValues(value);
   };
   const handleRadioShowValues = (value) => {
-    console.log("hondle show value", value);
     handleshowradio(value);
   };
   return (

@@ -11,7 +11,6 @@ const DisplayMode = ({
   setSlice,
 }) => {
   const displayOptions = ["Off", "In legend", "On the chart"];
-  // console.log("in display mode ", setSlice);
   return (
     <div className="display-section">
       <div className="legend">

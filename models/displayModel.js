@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const CommonSchema = require("./commonSchema");
 const Schema = mongoose.Schema;
 
 const displaySchema = new mongoose.Schema(

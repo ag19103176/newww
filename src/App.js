@@ -81,10 +81,9 @@ function App() {
   const [refresh, setRefresh] = useState();
 
   const handleRefreshClick = (val) => {
-    setTimeout(() => {
-      // setGraph(!graph)
-      window.location.reload();
-    }, val * 60000);
+    setInterval(() => {
+      setGraph(!graph);
+    }, val * 1000);
   };
 
   // useEffect(() => {
@@ -122,7 +121,7 @@ function App() {
   }, [graph]);
 
   const handleEdit = async (graphData) => {
-    console.log("abc", graphData);
+    // console.log("abc", graphData);
     setLoading(true);
     setSelectedSource(graphData.chartSource);
     setIdentify(graphData.chartBasic);
@@ -132,15 +131,15 @@ function App() {
     setNum(graphData.abc);
     setId(graphData._id);
     if (graphData.chartType === "1") {
-      setDim(graphData.field1);
-      setMeasure(graphData.field2);
+      setDim(graphData.chartElements.pieChart.dimension);
+      setMeasure(graphData.chartElements.pieChart.measure);
       setLegend(graphData.chartElements.pieChart.legend);
       setTotal(graphData.chartElements.pieChart.total);
       setSelectPercentage(graphData.chartElements.pieChart.selectPercentage);
       setSlicePercentage(graphData.chartElements.pieChart.minSlicePercentage);
     } else if (graphData.chartType === "2" || graphData.chartType === "3  ") {
-      setDim(graphData.field1);
-      setMeasure(graphData.field2);
+      setDim(graphData.chartElements.barLineChart.xaxis);
+      setMeasure(graphData.chartElements.barLineChart.yaxis);
       setGoalLine(graphData.chartElements.barLineChart.goalLine);
       setGoalValue(graphData.chartElements.barLineChart.goalValue);
       setGoalLabel(graphData.chartElements.barLineChart.goalLabel);
@@ -183,14 +182,16 @@ function App() {
         chartBasic: identify,
         chartType: type,
         chartNum: num,
-        field1: dim,
-        field2: measure,
+        // field1: dim,
+        // field2: measure,
         layout: layout,
         chartElements: {},
       };
       if (type === "1") {
         requestData.chartElements = {
           pieChart: {
+            dimension: dim,
+            measure: measure,
             legend: legend,
             total: total,
             selectPercentage: selectPercentage,
@@ -200,6 +201,9 @@ function App() {
       } else if (type === "2" || type === "3") {
         requestData.chartElements = {
           barLineChart: {
+            xaxis: dim,
+            yaxis: measure,
+
             goalLine: goalLine,
             goalValue: goalValue,
             // goalLabel: goalLabel,
@@ -234,90 +238,6 @@ function App() {
     setLoading(false);
   };
 
-  const handleGenerateCount = async () => {
-    try {
-      if (num === "1") {
-        var response = await fetch(
-          `http://localhost:8000/api/getSum?chartSource=${selectedSource}&field1=${dim}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch");
-        }
-      } else if (num === "2") {
-        response = await fetch(
-          `http://localhost:8000/api/getAvg?chartSource=${selectedSource}&field1=${dim}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch");
-        }
-      }
-
-      const res = await response.json();
-      const totalSum = res.data[0].totalSum;
-      setTotalSum(totalSum);
-
-      const requestData = {
-        chartSource: selectedSource,
-        chartBasic: identify,
-        chartNum: num,
-        field1: dim,
-        getSum: totalSum,
-        layout: layout,
-      };
-      await axios.patch("http://localhost:8000/api/saveGraph", requestData);
-
-      setGraph(!graph);
-      setNum("");
-      setShowModal(false);
-    } catch (err) {
-      console.error("Error fetching sum:", err);
-    }
-  };
-  const handleGenerateEditCount = async () => {
-    setLoading(true);
-    try {
-      let response;
-      if (num === "1") {
-        response = await fetch(
-          `http://localhost:8000/api/getSum?chartSource=${selectedSource}&field1=${dim}&field2=${measure}`
-        );
-      } else if (num === "2") {
-        response = await fetch(
-          `http://localhost:8000/api/getAvg?chartSource=${selectedSource}&field1=${dim}&field2=${measure}`
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch");
-      }
-
-      const res = await response.json();
-      const totalSum = res.data[0].totalSum;
-      setTotalSum(totalSum);
-
-      const requestData = {
-        chartSource: selectedSource,
-        chartBasic: identify,
-        chartNum: num,
-        field1: dim,
-        field2: measure,
-        getSum: totalSum,
-        layout: layout,
-      };
-      await axios.patch(
-        `http://localhost:8000/api/updateGraph/${objid}/${id}`,
-        requestData
-      );
-
-      setId("");
-      setShowModal(false);
-      setGraph(!graph);
-    } catch (error) {
-      console.error("Error generating edit count:", error.message);
-    }
-    setLoading(false);
-  };
-
   const handleGenerateEditGraph = async () => {
     setLoading(true);
     try {
@@ -325,7 +245,7 @@ function App() {
         params: {
           chartSource: selectedSource,
           field1: dim,
-          field2: "id",
+          field2: measure,
         },
       });
       const dataLabel = response.data.data.map((item) => ({
@@ -338,14 +258,16 @@ function App() {
         chartBasic: identify,
         chartType: type,
         chartNum: num,
-        field1: dim,
-        field2: measure,
+        // field1: dim,
+        // field2: measure,
         layout: layout,
         chartElements: {},
       };
       if (type === "1") {
         updatedData.chartElements = {
           pieChart: {
+            dimension: dim,
+            measure: measure,
             legend: legend,
             total: total,
             selectPercentage: selectPercentage,
@@ -355,6 +277,8 @@ function App() {
       } else if (type === "2" || type === "3") {
         updatedData.chartElements = {
           barLineChart: {
+            xaxis: dim,
+            yaxis: measure,
             goalLine: goalLine,
             goalValue: goalValue,
             // goalLabel: goalLabel,
@@ -398,6 +322,121 @@ function App() {
     setLoading(false);
   };
 
+  const handleEditCount = async (graphData) => {
+    console.log("edit coint", graphData);
+    setLoading(true);
+    setSelectedSource(graphData.chartSource);
+    setIdentify(graphData.chartBasic);
+    setNum(graphData.chartNum);
+    setId(graphData._id);
+    setShowModal(true);
+    setAddButton(true);
+    setGraphEdit(true);
+    setLoading(false);
+  };
+  const handleGenerateCount = async () => {
+    try {
+      if (num === "1") {
+        var response = await fetch(
+          `http://localhost:8000/api/getSum?chartSource=${selectedSource}&field1=${dim}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch");
+        }
+      } else if (num === "2") {
+        response = await fetch(
+          `http://localhost:8000/api/getAvg?chartSource=${selectedSource}&field1=${dim}`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch");
+        }
+      }
+
+      const res = await response.json();
+      const totalSum = res.data[0].totalSum;
+      setTotalSum(totalSum);
+
+      const requestData = {
+        chartSource: selectedSource,
+        chartBasic: identify,
+        chartNum: num,
+        layout: layout,
+      };
+      if (num === "1") {
+        requestData.chartElements = {
+          sumChart: {
+            field: dim,
+            getSum: totalSum,
+          },
+        };
+      } else {
+        requestData.chartElements = {
+          avgChart: {
+            field: dim,
+            getAvg: totalSum,
+          },
+        };
+      }
+      await axios.patch("http://localhost:8000/api/saveGraph", requestData);
+
+      setGraph(!graph);
+      setNum("");
+      setShowModal(false);
+    } catch (err) {
+      console.error("Error fetching sum:", err);
+    }
+  };
+  const handleGenerateEditCount = async () => {
+    setLoading(true);
+    try {
+      let response;
+      // setDim(graphData.field1);
+      if (num === "1") {
+        response = await fetch(
+          `http://localhost:8000/api/getSum?chartSource=${selectedSource}&field1=${dim}&field2=${measure}`
+        );
+      } else if (num === "2") {
+        response = await fetch(
+          `http://localhost:8000/api/getAvg?chartSource=${selectedSource}&field1=${dim}&field2=${measure}`
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch");
+      }
+
+      const res = await response.json();
+      const totalSum = res.data[0].totalSum;
+      setTotalSum(totalSum);
+
+      const requestData = {
+        chartSource: selectedSource,
+        chartBasic: identify,
+        chartNum: num,
+        // field1: dim,
+        // field2: measure,
+
+        layout: layout,
+      };
+      requestData.chartElements = {
+        sumChart: {
+          field: dim,
+          getSum: totalSum,
+        },
+      };
+      await axios.patch(
+        `http://localhost:8000/api/updateGraph/${objid}/${id}`,
+        requestData
+      );
+
+      setId("");
+      setShowModal(false);
+      setGraph(!graph);
+    } catch (error) {
+      console.error("Error generating edit count:", error.message);
+    }
+    setLoading(false);
+  };
   const handleDelete = async (id) => {
     setLoading(true);
     try {
@@ -827,7 +866,7 @@ function App() {
         isDraggable={isDraggable}
         breakpoints={{ lg: 100 }}
       >
-        {console.log("rdfr", layout)}
+        {/* {console.log("rdfr", layout)} */}
         {layout &&
           displayGraph.map((d, index) => (
             <div
@@ -840,7 +879,7 @@ function App() {
                 <div className="Btn">
                   <div
                     onClick={() => {
-                      handleEdit(d);
+                      identify === "1" ? handleEdit(d) : handleEditCount(d);
                     }}
                   >
                     <div style={{ color: "white", cursor: "pointer" }}>

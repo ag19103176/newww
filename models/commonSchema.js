@@ -3,6 +3,12 @@ const mongoose = require("mongoose");
 // Define subschema for pie chart configurations
 const PieChartSchema = new mongoose.Schema(
   {
+    dimension: {
+      type: String,
+    },
+    measure: {
+      type: String,
+    },
     legend: {
       type: Boolean,
     },
@@ -24,6 +30,12 @@ const PieChartSchema = new mongoose.Schema(
 // Define subschema for bar and line chart configurations
 const BarLineChartSchema = new mongoose.Schema(
   {
+    xaxis: {
+      type: String,
+    },
+    yaxis: {
+      type: String,
+    },
     goalLine: {
       type: Boolean,
       default: false,
@@ -71,7 +83,28 @@ const BarLineChartSchema = new mongoose.Schema(
   },
   { _id: false }
 );
-
+const SumChartSchema = new mongoose.Schema(
+  {
+    field: {
+      type: String,
+    },
+    getSum: {
+      type: Number,
+    },
+  },
+  { _id: false }
+);
+const AvgChartSchema = new mongoose.Schema(
+  {
+    field: {
+      type: String,
+    },
+    getAvg: {
+      type: Number,
+    },
+  },
+  { _id: false }
+);
 const UserAnalyticsChartsSchema = new mongoose.Schema({
   graph: [
     {
@@ -107,21 +140,9 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
         type: String,
         default: 0,
       },
-      getSum: {
-        type: Number,
-        default: null,
-      },
+
       json_data: {
         type: Array,
-      },
-      field1: {
-        type: String,
-        required: true,
-        default: 0,
-      },
-      field2: {
-        type: String,
-        default: null,
       },
       layout: {
         x: {
@@ -144,6 +165,8 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
       chartElements: {
         pieChart: PieChartSchema,
         barLineChart: BarLineChartSchema,
+        sumChart: SumChartSchema,
+        avgChart: AvgChartSchema,
       },
     },
   ],

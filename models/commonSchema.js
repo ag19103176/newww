@@ -141,9 +141,9 @@ const UserAnalyticsChartsSchema = new mongoose.Schema({
         default: 0,
       },
 
-      json_data: {
-        type: Array,
-      },
+      // json_data: {
+      //   type: Array,
+      // },
       layout: {
         x: {
           type: Number,

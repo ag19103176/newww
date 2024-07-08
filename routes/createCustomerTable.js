@@ -155,7 +155,7 @@ router.post("/saveGraph", async (req, res) => {
     userId,
     isDeleted,
     chartSource,
-    json_data,
+
     chartBasic,
     chartType,
     chartNum,
@@ -171,7 +171,6 @@ router.post("/saveGraph", async (req, res) => {
           userId,
           isDeleted,
           chartSource,
-          json_data,
           chartBasic,
           chartType,
           chartNum,

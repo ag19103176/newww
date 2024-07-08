@@ -95,9 +95,40 @@ function App() {
       try {
         const response = await axios.get("http://localhost:8000/api/getGraph");
         const data = response.data;
+
         if (data.length > 0) {
+          data[0].graph.map(async (dd) => {
+            var response;
+            if (dd.chartBasic === "1") {
+              response = await axios.get("http://localhost:8000/api/getGroup", {
+                params: {
+                  chartSource: dd.chartSource,
+                  field1:
+                    dd.chartType === "1"
+                      ? dd.chartElements.pieChart.dimension
+                      : dd.chartElements.barLineChart.xaxis,
+
+                  field2:
+                    dd.chartType === "1"
+                      ? dd.chartElements.pieChart.measure
+                      : dd.chartElements.barLineChart.yaxis,
+                },
+              });
+
+              const dataLabel = response.data.data.map((item) => ({
+                label: item.label == null ? "nolabel" : item.label,
+                value: item.value == null ? "1" : item.value,
+              }));
+              dd.json_data = dataLabel;
+            }
+          });
+
+          console.log("dataaaaaaaaaaaaa", data[0].graph);
           setObjid(() => data[0]._id); // TODO
-          setDisplayGraph(data[0].graph);
+          setTimeout(() => {
+            setDisplayGraph(data[0].graph);
+          }, 1000);
+
           var temp = data[0].graph.map((g, index) => {
             console.log({ ...g.layout, i: index });
             return { ...g.layout, i: index };
@@ -178,7 +209,7 @@ function App() {
       }));
       const requestData = {
         chartSource: selectedSource,
-        json_data: dataLabel,
+        // json_data: dataLabel,
         chartBasic: identify,
         chartType: type,
         chartNum: num,
@@ -362,21 +393,12 @@ function App() {
         chartNum: num,
         layout: layout,
       };
-      if (num === "1") {
-        requestData.chartElements = {
-          sumChart: {
-            field: dim,
-            getSum: totalSum,
-          },
-        };
-      } else {
-        requestData.chartElements = {
-          avgChart: {
-            field: dim,
-            getAvg: totalSum,
-          },
-        };
-      }
+      requestData.chartElements = {
+        sumChart: {
+          dimension: dim,
+          getSum: totalSum,
+        },
+      };
       await axios.patch("http://localhost:8000/api/saveGraph", requestData);
 
       setGraph(!graph);
@@ -420,7 +442,7 @@ function App() {
       };
       requestData.chartElements = {
         sumChart: {
-          field: dim,
+          dimension: dim,
           getSum: totalSum,
         },
       };
@@ -868,50 +890,55 @@ function App() {
       >
         {/* {console.log("rdfr", layout)} */}
         {layout &&
-          displayGraph.map((d, index) => (
-            <div
-              key={d._id}
-              className="chart-card"
-              data-grid={handleLayout(displayGraph)[index]}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="black">
-                <div className="Btn">
-                  <div
-                    onClick={() => {
-                      identify === "1" ? handleEdit(d) : handleEditCount(d);
-                    }}
-                  >
-                    <div style={{ color: "white", cursor: "pointer" }}>
-                      <EditOutlinedIcon />
+          displayGraph.map(
+            (d, index) => (
+              console.log("pandaa", d),
+              (
+                <div
+                  key={d._id}
+                  className="chart-card"
+                  data-grid={handleLayout(displayGraph)[index]}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="black">
+                    <div className="Btn">
+                      <div
+                        onClick={() => {
+                          identify === "1" ? handleEdit(d) : handleEditCount(d);
+                        }}
+                      >
+                        <div style={{ color: "white", cursor: "pointer" }}>
+                          <EditOutlinedIcon />
+                        </div>
+                      </div>
+                      <div
+                        onClick={() => {
+                          handleDelete(d._id);
+                        }}
+                      >
+                        <div style={{ color: "white", cursor: "pointer" }}>
+                          <DeleteForeverOutlinedIcon />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div
-                    onClick={() => {
-                      handleDelete(d._id);
-                    }}
-                  >
-                    <div style={{ color: "white", cursor: "pointer" }}>
-                      <DeleteForeverOutlinedIcon />
-                    </div>
-                  </div>
+                  {d.chartType === "1" ? (
+                    <PieChart data={d} />
+                  ) : d.chartType === "2" ? (
+                    <BarChart data={d} />
+                  ) : d.chartType === "3" ? (
+                    <LineChart data={d} />
+                  ) : d.chartBasic === "2" && d.chartNum === "1" ? (
+                    <SumDisplay totalSum={d} />
+                  ) : d.chartBasic === "2" && d.chartNum === "2" ? (
+                    <AvgDisplay totalSum={d} />
+                  ) : (
+                    <div>Invalid chart type</div>
+                  )}
                 </div>
-              </div>
-              {d.chartType === "1" ? (
-                <PieChart data={d} />
-              ) : d.chartType === "2" ? (
-                <BarChart data={d} />
-              ) : d.chartType === "3" ? (
-                <LineChart data={d} />
-              ) : d.chartBasic === "2" && d.chartNum === "1" ? (
-                <SumDisplay totalSum={d} />
-              ) : d.chartBasic === "2" && d.chartNum === "2" ? (
-                <AvgDisplay totalSum={d} />
-              ) : (
-                <div>Invalid chart type</div>
-              )}
-            </div>
-          ))}
+              )
+            )
+          )}
       </ResponsiveReactGridLayout>
     </div>
   );

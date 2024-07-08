@@ -6,9 +6,10 @@ import "./toggle.css";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const CustomPieChart = ({ data }) => {
-  // console.log("in pie", data.json_data);
-  const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(0);
+
+  // console.log(data.json_data);
+  const itemsPerPage = 10;
 
   const l = data.json_data.map((d) => d.label);
   const v = data.json_data.map((d) => d.value);

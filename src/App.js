@@ -134,7 +134,7 @@ function App() {
               }
 
               const res = await x.json();
-              console.log("effect", res);
+              // console.log("effect", res);
               const totalSum = res.data[0].totalSum;
               dd.chartElements.sumChart.getSum = totalSum;
             }
@@ -267,14 +267,14 @@ function App() {
         };
       }
 
-      if (displayGraph.length == 0) {
-        // console.log(newID);
+      if (displayGraph.length == 0 && objid === "") {
         const newId = mongoose.Types.ObjectId();
         setObjid(newId);
         requestData._id = newId;
         console.log(requestData);
         await axios.post("http://localhost:8000/api/saveGraph", requestData);
       } else {
+        requestData._id = objid;
         await axios.patch("http://localhost:8000/api/saveGraph", requestData);
       }
 
@@ -371,7 +371,7 @@ function App() {
   };
 
   const handleEditCount = async (graphData) => {
-    console.log("edit coint", graphData);
+    // console.log("edit coint", graphData);
     setLoading(true);
     setSelectedSource(graphData.chartSource);
     setIdentify(graphData.chartBasic);

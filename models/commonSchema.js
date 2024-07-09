@@ -88,9 +88,9 @@ const SumChartSchema = new mongoose.Schema(
     field: {
       type: String,
     },
-    getSum: {
-      type: Number,
-    },
+    // getSum: {
+    //   type: Number,
+    // },
   },
   { _id: false }
 );
@@ -99,9 +99,9 @@ const AvgChartSchema = new mongoose.Schema(
     field: {
       type: String,
     },
-    getAvg: {
-      type: Number,
-    },
+    // getAvg: {
+    //   type: Number,
+    // },
   },
   { _id: false }
 );

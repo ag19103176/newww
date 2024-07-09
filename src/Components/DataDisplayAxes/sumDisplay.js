@@ -1,6 +1,7 @@
 import React from "react";
 
 const SumDisplay = ({ totalSum }) => {
+  console.log(totalSum.chartElements.sumChart.getSum);
   const data = totalSum.chartElements.sumChart.getSum;
   // console.log("sc", field1);
   // console.log(totalSum);

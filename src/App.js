@@ -99,6 +99,7 @@ function App() {
         if (data.length > 0) {
           data[0].graph.map(async (dd) => {
             var response;
+            var x;
             if (dd.chartBasic === "1") {
               response = await axios.get("http://localhost:8000/api/getGroup", {
                 params: {
@@ -120,6 +121,22 @@ function App() {
                 value: item.value == null ? "1" : item.value,
               }));
               dd.json_data = dataLabel;
+            } else if (dd.chartBasic === "2") {
+              // setDim(graphData.field1);
+              if (dd.chartNum === "1") {
+                x = await fetch(
+                  `http://localhost:8000/api/getSum?chartSource=${dd.chartSource}&field1=${dd.chartElements.sumChart.field}`
+                );
+              } else if (dd.chartNum === "2") {
+                x = await fetch(
+                  `http://localhost:8000/api/getAvg?chartSource=${dd.chartSource}&field1=${dd.chartElements.sumChart.field}`
+                );
+              }
+
+              const res = await x.json();
+              console.log("effect", res);
+              const totalSum = res.data[0].totalSum;
+              dd.chartElements.sumChart.getSum = totalSum;
             }
           });
 
@@ -371,16 +388,10 @@ function App() {
         var response = await fetch(
           `http://localhost:8000/api/getSum?chartSource=${selectedSource}&field1=${dim}`
         );
-        if (!response.ok) {
-          throw new Error("Failed to fetch");
-        }
       } else if (num === "2") {
         response = await fetch(
           `http://localhost:8000/api/getAvg?chartSource=${selectedSource}&field1=${dim}`
         );
-        if (!response.ok) {
-          throw new Error("Failed to fetch");
-        }
       }
 
       const res = await response.json();
@@ -395,10 +406,10 @@ function App() {
       };
       requestData.chartElements = {
         sumChart: {
-          dimension: dim,
-          getSum: totalSum,
+          field: dim,
         },
       };
+      console.log("generate", requestData);
       await axios.patch("http://localhost:8000/api/saveGraph", requestData);
 
       setGraph(!graph);
@@ -442,8 +453,8 @@ function App() {
       };
       requestData.chartElements = {
         sumChart: {
-          dimension: dim,
-          getSum: totalSum,
+          field: dim,
+          // getSum: totalSum,
         },
       };
       await axios.patch(
@@ -890,55 +901,50 @@ function App() {
       >
         {/* {console.log("rdfr", layout)} */}
         {layout &&
-          displayGraph.map(
-            (d, index) => (
-              console.log("pandaa", d),
-              (
-                <div
-                  key={d._id}
-                  className="chart-card"
-                  data-grid={handleLayout(displayGraph)[index]}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="black">
-                    <div className="Btn">
-                      <div
-                        onClick={() => {
-                          identify === "1" ? handleEdit(d) : handleEditCount(d);
-                        }}
-                      >
-                        <div style={{ color: "white", cursor: "pointer" }}>
-                          <EditOutlinedIcon />
-                        </div>
-                      </div>
-                      <div
-                        onClick={() => {
-                          handleDelete(d._id);
-                        }}
-                      >
-                        <div style={{ color: "white", cursor: "pointer" }}>
-                          <DeleteForeverOutlinedIcon />
-                        </div>
-                      </div>
+          displayGraph.map((d, index) => (
+            <div
+              key={d._id}
+              className="chart-card"
+              data-grid={handleLayout(displayGraph)[index]}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="black">
+                <div className="Btn">
+                  <div
+                    onClick={() => {
+                      identify === "1" ? handleEdit(d) : handleEditCount(d);
+                    }}
+                  >
+                    <div style={{ color: "white", cursor: "pointer" }}>
+                      <EditOutlinedIcon />
                     </div>
                   </div>
-                  {d.chartType === "1" ? (
-                    <PieChart data={d} />
-                  ) : d.chartType === "2" ? (
-                    <BarChart data={d} />
-                  ) : d.chartType === "3" ? (
-                    <LineChart data={d} />
-                  ) : d.chartBasic === "2" && d.chartNum === "1" ? (
-                    <SumDisplay totalSum={d} />
-                  ) : d.chartBasic === "2" && d.chartNum === "2" ? (
-                    <AvgDisplay totalSum={d} />
-                  ) : (
-                    <div>Invalid chart type</div>
-                  )}
+                  <div
+                    onClick={() => {
+                      handleDelete(d._id);
+                    }}
+                  >
+                    <div style={{ color: "white", cursor: "pointer" }}>
+                      <DeleteForeverOutlinedIcon />
+                    </div>
+                  </div>
                 </div>
-              )
-            )
-          )}
+              </div>
+              {d.chartType === "1" ? (
+                <PieChart data={d} />
+              ) : d.chartType === "2" ? (
+                <BarChart data={d} />
+              ) : d.chartType === "3" ? (
+                <LineChart data={d} />
+              ) : d.chartBasic === "2" && d.chartNum === "1" ? (
+                <SumDisplay totalSum={d} />
+              ) : d.chartBasic === "2" && d.chartNum === "2" ? (
+                <AvgDisplay totalSum={d} />
+              ) : (
+                <div>Invalid chart type</div>
+              )}
+            </div>
+          ))}
       </ResponsiveReactGridLayout>
     </div>
   );
